@@ -160,15 +160,15 @@ def lock(key:str):
     count = 0
     sleep(0.1)
     for file in files:
+        count += 1
         print(f"Rewriting files... {count}/{files_n}")
         notice.config(text=f"Rewriting files...{count}/{files_n}")
-        count += 1
+
         file = File(f"{archive_path}/{file}")
 
         encrypted = encrypt(key, file.read_bytes())
         file.write_bytes(''.encode('utf-8'))
-        for i in encrypted:
-            file.append(i)
+        file.append(''.join(encrypted))
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
