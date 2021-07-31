@@ -5,7 +5,9 @@ from threading import Thread # Get access to threading
 from time import sleep # Useful for delaying time
 import os # Gives us access to the CONSOLE
 from zipfile import ZipFile # Unzip files!
-from enum import Enum # for enum34, or the stdlib version
+from enum import Enum # To make Enums in Python!
+import urllib.parse # An amazing way to make URL-Safe strings!
+from utility import File, Timer # My utilities I wrote on vacation!
 
 # --------
 # Please enjoy using this code for your every purpose!
@@ -38,15 +40,21 @@ t_OS = Enum('Operating System', 'windows mac ?')
 
 OS = t_OS['?']
 window_closed = True
+username = "Superuser"
+
+filename_separator = "||__||"
 
 if sys.platform.startswith("darwin"):
     OS = t_OS.mac
     app_path = project_root
+    username = os.getlogin()
 elif sys.platform.startswith("win"):
     OS = t_OS.windows
     app_path = project_root
+    username = os.getlogin()
 else:
     app_path = project_root
+archive_path = f"{project_root}/ARCHIVE"
 
 window = Tk.Tk()
 window.title(f"Folder-Lock v{version}")
@@ -66,17 +74,99 @@ def time_loop():
 
 Thread(target=time_loop,args=(),daemon=True).start()
 
+def encrypt(key, string):
+    encoded_chars = []
+    try:
+        string = string.decode()
+    except:
+        string = str(string)
+    for i in range(len(string)):
+        key_c = key[i % len(key)]
+        encoded_c = chr(ord(string[i]) + ord(key_c) % 256)
+        encoded_chars.append(encoded_c)
+    encoded_string = ''.join(encoded_chars)
+    return encoded_string.encode()
+
+def decrypt(key, string):
+    encoded_chars = []
+    try:
+        string = string.decode()
+    except:
+        string = str(string)
+    for i in range(len(string)):
+        key_c = key[i % len(key)]
+        encoded_c = chr((ord(string[i]) - ord(key_c) + 256) % 256)
+        encoded_chars.append(encoded_c)
+    encoded_string = ''.join(encoded_chars)
+    return encoded_string.encode()
+
 def unlock(key:str):
-    ...
+    print("Encoding passkey...")
+    notice.config(text="Encoding passkey...")
+    key = urllib.parse.quote(key)
+    print(f"\nLock (key:str): [\nRegister password using `{key}`\n(Decoded as {urllib.parse.unquote(key)})\n]\n")
+    sleep(0.1)
+    print("Getting file data...")
+    notice.config(text="Getting file data...")
+    files = [f for f in os.listdir(archive_path) if os.path.isfile(os.path.join(archive_path, f))]
+    sleep(0.1)
+    try: files.remove('.DS_Store')
+    except: pass
+    files_n = len(files)
+    count = 0
+    sleep(0.1)
+    for file in files:
+        print(f"Rewriting files... {count}/{files_n}")
+        notice.config(text=f"Rewriting files...{count}/{files_n}")
+        count += 1
+        file = File(f"{archive_path}/{file}")
+
+        decrypted = decrypt(key, file.read_bytes())
+        file.write_bytes(decrypted)
+
+        sleep(0.1)
+    print(f"Rewriting files... {count}/{files_n}")
+    notice.config(text=f"Rewriting files...{count}/{files_n}")
+    sleep(0.1)
+    print(f"Successfully decrypted files!")
+    notice.config(text=f"Successfully decrypted files!")
 
 def call_unlock():
-    ...
+    Thread(target=unlock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
 
 def lock(key:str):
-    ...
+    print("Encoding passkey...")
+    notice.config(text="Encoding passkey...")
+    key = urllib.parse.quote(key)
+    print(f"\nLock (key:str): [\nRegister password using `{key}`\n(Decoded as {urllib.parse.unquote(key)})\n]\n")
+    sleep(0.1)
+    print("Getting file data...")
+    notice.config(text="Getting file data...")
+    files = [f for f in os.listdir(archive_path) if os.path.isfile(os.path.join(archive_path, f))]
+    sleep(0.1)
+    try: files.remove('.DS_Store')
+    except: pass
+    files_n = len(files)
+    count = 0
+    sleep(0.1)
+    for file in files:
+        print(f"Rewriting files... {count}/{files_n}")
+        notice.config(text=f"Rewriting files...{count}/{files_n}")
+        count += 1
+        file = File(f"{archive_path}/{file}")
+
+        encrypted = encrypt(key, file.read_bytes())
+        file.write_bytes(encrypted)
+
+        sleep(0.1)
+    print(f"Rewriting files... {count}/{files_n}")
+    notice.config(text=f"Rewriting files...{count}/{files_n}")
+    sleep(0.1)
+    print(f"Successfully encrypted files!")
+    notice.config(text=f"Successfully encrypted files!")
 
 def call_lock():
-    ...
+    Thread(target=lock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
 
 password_field = Tk.Text(frame,height=1,width=30)
 password_field.insert("1.0", "Password")
@@ -87,6 +177,10 @@ lock_button.place(x=175,y=100,width=150,height=20)
 
 unlock_button = Tk.Button(frame,text="Unlock",font=("Helvetica",16),command=call_unlock)
 unlock_button.place(x=175,y=150,width=150,height=20)
+
+notice = Tk.Label(frame,text="All data to be stored must be in a folder named \"ARCHIVE\"")
+notice.config(font=("Helvetica",18))
+notice.place(x=0,y=350,width=500,height=30)
 
 window_closed = False
 window.mainloop()
