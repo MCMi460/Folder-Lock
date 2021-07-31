@@ -29,6 +29,10 @@ class File():
         with open(self.file,"wb") as file:
             file.write(content)
 
+    def append_bytes(self,content):
+        with open(self.file,"ab") as file:
+            file.write(content)
+
     def overwrite(self,content = default):
         with open(self.file,"w") as file:
             file.write(content)

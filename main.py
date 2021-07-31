@@ -74,31 +74,23 @@ def time_loop():
 
 Thread(target=time_loop,args=(),daemon=True).start()
 
-def encrypt(key, string):
-    encoded_chars = []
-    try:
-        string = string.decode()
-    except:
-        string = str(string)
-    for i in range(len(string)):
+def encrypt(key, bytes_list):
+    encoded_items = []
+    bytes_list = [b'%c' % i for i in bytes_list]
+    for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
-        encoded_c = chr(ord(string[i]) + ord(key_c) % 256)
-        encoded_chars.append(encoded_c)
-    encoded_string = ''.join(encoded_chars)
-    return encoded_string.encode()
+        encoded_c = int.from_bytes(bytes_list[i], sys.byteorder) + ord(key_c) % 256
+        encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
+    return encoded_items
 
-def decrypt(key, string):
-    encoded_chars = []
-    try:
-        string = string.decode()
-    except:
-        string = str(string)
-    for i in range(len(string)):
+def decrypt(key, bytes_list):
+    encoded_items = []
+    bytes_list = [b'%c' % i for i in bytes_list]
+    for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
-        encoded_c = chr((ord(string[i]) - ord(key_c) + 256) % 256)
-        encoded_chars.append(encoded_c)
-    encoded_string = ''.join(encoded_chars)
-    return encoded_string.encode()
+        encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) - ord(key_c) + 256) % 256
+        encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
+    return encoded_items
 
 def unlock(key:str):
     print("Encoding passkey...")
@@ -122,7 +114,9 @@ def unlock(key:str):
         file = File(f"{archive_path}/{file}")
 
         decrypted = decrypt(key, file.read_bytes())
-        file.write_bytes(decrypted)
+        file.write_bytes(''.encode('utf-8'))
+        for i in decrypted:
+            file.append_bytes(i)
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
@@ -156,7 +150,9 @@ def lock(key:str):
         file = File(f"{archive_path}/{file}")
 
         encrypted = encrypt(key, file.read_bytes())
-        file.write_bytes(encrypted)
+        file.write_bytes(''.encode('utf-8'))
+        for i in encrypted:
+            file.append_bytes(i)
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
