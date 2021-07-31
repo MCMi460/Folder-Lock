@@ -28,9 +28,9 @@ def restart():
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 def open_folder(str = "."):
-    if OS == "mac":
+    if OS == t_OS.mac:
         str = f"open {str}"
-    elif OS == "windows":
+    elif OS == t_OS.windows:
         str = f"start {str}"
     else:
         return
@@ -63,6 +63,16 @@ window.resizable(False,False)
 
 frame = Tk.Frame(window, width=800, height=400)
 frame.pack()
+
+author = Tk.Label(frame,text="By Deltaion Lee!")
+author.config(font=("Helvetica",12))
+author.place(x=190,y=5,width=120,height=20)
+author.bind("<Button-1>", lambda e: open_folder("https://github.com/MCMi460"))
+
+user = Tk.Label(frame,text=username,anchor='w')
+user.config(font=("Helvetica",12))
+user.place(x=0,y=5,width=120,height=20)
+user.bind("<Button-1>", lambda e: open_folder(f"https://ghostr.mi460.dev/user/search?user={urllib.parse.quote(username)}"))
 
 timestamp = Tk.Label(frame,text=f"{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}",font=("Helvetica",12))
 timestamp.place(x=350,y=5,width=150,height=20)
@@ -183,6 +193,7 @@ unlock_button.place(x=175,y=150,width=150,height=20)
 notice = Tk.Label(frame,text="All data to be stored must be in a folder named \"STORAGE\"")
 notice.config(font=("Helvetica",18))
 notice.place(x=0,y=350,width=500,height=30)
+notice.bind("<Button-1>", lambda e: open_folder("STORAGE"))
 
 window_closed = False
 window.mainloop()
