@@ -54,7 +54,7 @@ elif sys.platform.startswith("win"):
     username = os.getlogin()
 else:
     app_path = project_root
-archive_path = f"{project_root}/ARCHIVE"
+archive_path = f"{project_root}/STORAGE"
 
 window = Tk.Tk()
 window.title(f"Folder-Lock v{version}")
@@ -79,7 +79,9 @@ def encrypt(key, bytes_list):
     bytes_list = [b'%c' % i for i in bytes_list]
     for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
-        encoded_c = int.from_bytes(bytes_list[i], sys.byteorder) + ord(key_c) % 256
+        encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) + ord(key_c)) % 512
+        print(int.from_bytes(bytes_list[i], sys.byteorder))
+        print(encoded_c)
         encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
     return encoded_items
 
@@ -88,7 +90,9 @@ def decrypt(key, bytes_list):
     bytes_list = [b'%c' % i for i in bytes_list]
     for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
-        encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) - ord(key_c) + 256) % 256
+        encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) - ord(key_c) + 512) % 512
+        print(int.from_bytes(bytes_list[i], sys.byteorder))
+        print(encoded_c)
         encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
     return encoded_items
 
@@ -174,7 +178,7 @@ lock_button.place(x=175,y=100,width=150,height=20)
 unlock_button = Tk.Button(frame,text="Unlock",font=("Helvetica",16),command=call_unlock)
 unlock_button.place(x=175,y=150,width=150,height=20)
 
-notice = Tk.Label(frame,text="All data to be stored must be in a folder named \"ARCHIVE\"")
+notice = Tk.Label(frame,text="All data to be stored must be in a folder named \"STORAGE\"")
 notice.config(font=("Helvetica",18))
 notice.place(x=0,y=350,width=500,height=30)
 
