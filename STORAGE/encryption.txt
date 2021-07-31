@@ -1,1 +1,5 @@
 Enjoy encrypting me!
+Just a fair warning, though:
+'Encryption' consists of a very primitive rewrite of simple mathematical operators performed on your string. That means that similar string passwords will return nearly the same data as before encrypted. This is not a form of truly safe encryption for you to use, it is merely a novelty.
+Another good forewarning: In order to properly support all file types and passwords without integers being too big to convert to bytes, the program instead of writing encryption to binary, it writes it as a string and converts as needed. Please beware this use of encoding and iterations. It is not proper and can break given the wrong circumstances. Please contact me if anything goes awry.
+Thank you.

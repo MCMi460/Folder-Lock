@@ -42,7 +42,7 @@ OS = t_OS['?']
 window_closed = True
 username = "Superuser"
 
-filename_separator = "||__||"
+separator = "||__||"
 
 if sys.platform.startswith("darwin"):
     OS = t_OS.mac
@@ -80,19 +80,21 @@ def encrypt(key, bytes_list):
     for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
         encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) + ord(key_c)) % 512
-        print(int.from_bytes(bytes_list[i], sys.byteorder))
-        print(encoded_c)
-        encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
+        encoded_items.append(str(encoded_c) + separator)
     return encoded_items
 
 def decrypt(key, bytes_list):
     encoded_items = []
-    bytes_list = [b'%c' % i for i in bytes_list]
+    temp = bytes_list.split(separator)
+    bytes_list = []
+    for i in temp:
+        try:
+            bytes_list.append(int(i))
+        except:
+            pass
     for i in range(len(bytes_list)):
         key_c = key[i % len(key)]
-        encoded_c = (int.from_bytes(bytes_list[i], sys.byteorder) - ord(key_c) + 512) % 512
-        print(int.from_bytes(bytes_list[i], sys.byteorder))
-        print(encoded_c)
+        encoded_c = (bytes_list[i] - ord(key_c) + 512) % 512
         encoded_items.append(encoded_c.to_bytes(1, sys.byteorder))
     return encoded_items
 
@@ -117,7 +119,7 @@ def unlock(key:str):
         count += 1
         file = File(f"{archive_path}/{file}")
 
-        decrypted = decrypt(key, file.read_bytes())
+        decrypted = decrypt(key, file.read())
         file.write_bytes(''.encode('utf-8'))
         for i in decrypted:
             file.append_bytes(i)
@@ -156,7 +158,7 @@ def lock(key:str):
         encrypted = encrypt(key, file.read_bytes())
         file.write_bytes(''.encode('utf-8'))
         for i in encrypted:
-            file.append_bytes(i)
+            file.append(i)
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
