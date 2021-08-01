@@ -4,7 +4,7 @@ import sys # Get the system operating system
 from threading import Thread # Get access to threading
 from time import sleep # Useful for delaying time
 import os # Gives us access to the CONSOLE
-from zipfile import ZipFile # Unzip files!
+from zipfile import ZipFile # Unzip and zip files!
 from enum import Enum # To make Enums in Python!
 import urllib.parse # An amazing way to make URL-Safe strings!
 from utility import File, Timer # My utilities I wrote on vacation!
@@ -26,6 +26,10 @@ def kill(str:str = 'An internal process killed the running processes'):
 
 def restart():
     os.execl(sys.executable, sys.executable, *sys.argv)
+
+def checkdir(path):
+    if not os.path.isdir(path):
+        os.mkdir(path)
 
 def open_folder(str = "."):
     if OS == t_OS.mac:
@@ -171,6 +175,7 @@ def lock(key:str):
     files_n = len(files)
     count = 0
     sleep(0.1)
+    locked = True
     for file in files:
         count += 1
         print(f"Rewriting files... {count}/{files_n}")
@@ -187,11 +192,21 @@ def lock(key:str):
 
         encrypted = encrypt(key, data_buffer)
         file.overwrite("_*" + ''.join(encrypted))
+        locked = False
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
     notice.config(text=f"Rewriting files...{count}/{files_n}")
     sleep(0.1)
+    if not locked:
+        print(f"Archiving files...")
+        notice.config(text=f"Archiving files...")
+        filename = f"ARCHIVE/{datetime.now().strftime('%Y-%m-%d|%H-%M')}.zip"
+        zipObj = ZipFile(filename, 'w')
+        for file in files:
+            zipObj.write(f"{archive_path}/{file}")
+        zipObj.close()
+        sleep(0.1)
     print(f"Successfully encrypted files!")
     notice.config(text=f"Successfully encrypted files!")
     processing = False
