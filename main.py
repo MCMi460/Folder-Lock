@@ -40,6 +40,7 @@ t_OS = Enum('Operating System', 'windows mac ?')
 
 OS = t_OS['?']
 window_closed = True
+processing = False
 username = "Superuser"
 
 separator = "||__||"
@@ -109,6 +110,8 @@ def decrypt(key, bytes_list):
     return encoded_items
 
 def unlock(key:str):
+    global processing
+    processing = True
     print("Encoding passkey...")
     notice.config(text="Encoding passkey...")
     key = urllib.parse.quote(key)
@@ -129,7 +132,11 @@ def unlock(key:str):
         count += 1
         file = File(f"{archive_path}/{file}")
 
-        decrypted = decrypt(key, file.read())
+        data_buffer = file.read()
+        if not "_*" in data_buffer:
+            continue
+
+        decrypted = decrypt(key, data_buffer.lstrip("_*"))
         file.write_bytes(b''.join(decrypted))
 
         sleep(0.1)
@@ -138,11 +145,15 @@ def unlock(key:str):
     sleep(0.1)
     print(f"Successfully decrypted files!")
     notice.config(text=f"Successfully decrypted files!")
+    processing = False
 
 def call_unlock():
-    Thread(target=unlock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
+    if not processing:
+        Thread(target=unlock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
 
 def lock(key:str):
+    global processing
+    processing = True
     print("Encoding passkey...")
     notice.config(text="Encoding passkey...")
     key = urllib.parse.quote(key)
@@ -164,8 +175,12 @@ def lock(key:str):
 
         file = File(f"{archive_path}/{file}")
 
+        data_buffer = file.read()
+        if "_*" in data_buffer:
+            continue
+
         encrypted = encrypt(key, file.read_bytes())
-        file.overwrite(''.join(encrypted))
+        file.overwrite("_*" + ''.join(encrypted))
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
@@ -173,9 +188,11 @@ def lock(key:str):
     sleep(0.1)
     print(f"Successfully encrypted files!")
     notice.config(text=f"Successfully encrypted files!")
+    processing = False
 
 def call_lock():
-    Thread(target=lock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
+    if not processing:
+        Thread(target=lock,args=(password_field.get("1.0",'end-1c'),),daemon=False).start()
 
 password_field = Tk.Text(frame,height=1,width=30)
 password_field.insert("1.0", "Password")
