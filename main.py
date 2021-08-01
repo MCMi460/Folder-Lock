@@ -130,9 +130,7 @@ def unlock(key:str):
         file = File(f"{archive_path}/{file}")
 
         decrypted = decrypt(key, file.read())
-        file.write_bytes(''.encode('utf-8'))
-        for i in decrypted:
-            file.append_bytes(i)
+        file.write_bytes(b''.join(decrypted))
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
@@ -167,8 +165,7 @@ def lock(key:str):
         file = File(f"{archive_path}/{file}")
 
         encrypted = encrypt(key, file.read_bytes())
-        file.write_bytes(''.encode('utf-8'))
-        file.append(''.join(encrypted))
+        file.overwrite(''.join(encrypted))
 
         sleep(0.1)
     print(f"Rewriting files... {count}/{files_n}")
