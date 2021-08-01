@@ -191,7 +191,7 @@ unlock_button = Tk.Button(frame,text="Unlock",font=("Helvetica",16),command=call
 unlock_button.place(x=175,y=150,width=150,height=20)
 
 notice = Tk.Label(frame,text="All data to be stored must be in a folder named \"STORAGE\"")
-notice.config(font=("Helvetica",18))
+notice.config(font=("Helvetica",14))
 notice.place(x=0,y=350,width=500,height=30)
 notice.bind("<Button-1>", lambda e: open_folder("STORAGE"))
 
