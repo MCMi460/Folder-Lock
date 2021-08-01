@@ -132,8 +132,11 @@ def unlock(key:str):
         count += 1
         file = File(f"{archive_path}/{file}")
 
-        data_buffer = file.read()
-        if not "_*" in data_buffer:
+        try:
+            data_buffer = file.read()
+            if not "_*" in data_buffer:
+                continue
+        except:
             continue
 
         decrypted = decrypt(key, data_buffer.lstrip("_*"))
@@ -175,11 +178,14 @@ def lock(key:str):
 
         file = File(f"{archive_path}/{file}")
 
-        data_buffer = file.read()
-        if "_*" in data_buffer:
-            continue
+        data_buffer = file.read_bytes()
+        try:
+            if "_*" in file.read():
+                continue
+        except:
+            pass
 
-        encrypted = encrypt(key, file.read_bytes())
+        encrypted = encrypt(key, data_buffer)
         file.overwrite("_*" + ''.join(encrypted))
 
         sleep(0.1)
