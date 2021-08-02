@@ -61,6 +61,9 @@ else:
     app_path = project_root
 archive_path = f"{project_root}/STORAGE"
 
+checkdir(f"ARCHIVE/")
+checkdir(f"STORAGE/")
+
 window = Tk.Tk()
 window.title(f"Folder-Lock v{version}")
 window.geometry("500x400+300+300")
@@ -130,11 +133,12 @@ def unlock(key:str):
     files_n = len(files)
     count = 0
     sleep(0.1)
-    for file in files:
+    for item in files:
+        count += 1
         print(f"Rewriting files... {count}/{files_n}")
         notice.config(text=f"Rewriting files...{count}/{files_n}")
-        count += 1
-        file = File(f"{archive_path}/{file}")
+
+        file = File(f"{archive_path}/{item}")
 
         try:
             data_buffer = file.read()
@@ -143,13 +147,48 @@ def unlock(key:str):
         except:
             continue
 
-        decrypted = decrypt(key, data_buffer.lstrip("_*"))
-        file.write_bytes(b''.join(decrypted))
+        try:
+            decrypted = decrypt(key, data_buffer.lstrip("_*"))
+            file.write_bytes(b''.join(decrypted))
+        except:
+            print(f"Error on file {count}/{files_n}\nFile name: {item}")
+            notice.config(text=f"Error on file {count}/{files_n}")
+            sleep(1)
+            print(f"Proceeding with restoring backup...")
+            notice.config(text=f"Proceeding with restoring backup...")
+            archives = [f for f in os.listdir(f"{archive_path.replace('/STORAGE','')}/ARCHIVE") if os.path.isfile(os.path.join(f"{archive_path.replace('/STORAGE','')}/ARCHIVE", f))]
+            try:
+                archives.remove('.folder-lock')
+                archives.remove('.DS_Store')
+            except: pass
+            date_time_obj = datetime.strptime("1970-01-01|00-00", '%Y-%m-%d|%H-%M')
+            zip = None
+            for archive in archives:
+                try:
+                    if datetime.strptime(archive.replace(".zip",""), '%Y-%m-%d|%H-%M') > date_time_obj:
+                        date_time_obj = datetime.strptime(archive.replace(".zip",""), '%Y-%m-%d|%H-%M')
+                        zip = archive
+                    print(f"{archive}...")
+                except:
+                    pass
+            sleep(0.2)
+            print(f"Found archive {zip}...")
+            notice.config(text=f"Found archive {zip}...")
+            sleep(0.1)
+            try:
+                with ZipFile(f"ARCHIVE/{zip}", 'r') as zip_ref:
+                    zip_ref.extractall(f"{archive_path}")
+                print(f"Extracted {zip} successfully!")
+                notice.config(text=f"Extracted {zip} successfully!")
+                print(f"Warning, the extracted file may not be exactly perfect. Please check the directory before use.")
+            except:
+                print(f"Could not extract {zip}.")
+                notice.config(text=f"Could not extract {zip}.")
+            sleep(0.1)
+            processing = False
+            return
 
         sleep(0.1)
-    print(f"Rewriting files... {count}/{files_n}")
-    notice.config(text=f"Rewriting files...{count}/{files_n}")
-    sleep(0.1)
     print(f"Successfully decrypted files!")
     notice.config(text=f"Successfully decrypted files!")
     processing = False
@@ -190,14 +229,18 @@ def lock(key:str):
         except:
             pass
 
-        encrypted = encrypt(key, data_buffer)
-        file.overwrite("_*" + ''.join(encrypted))
-        locked = False
+        try:
+            encrypted = encrypt(key, data_buffer)
+            file.overwrite("_*" + ''.join(encrypted))
+            locked = False
+        except:
+            print(f"Error on file {count}/{files_n}\nFile: {file}")
+            notice.config(text=f"Error on file {count}/{files_n}")
+            sleep(1)
+            processing = False
+            return
 
         sleep(0.1)
-    print(f"Rewriting files... {count}/{files_n}")
-    notice.config(text=f"Rewriting files...{count}/{files_n}")
-    sleep(0.1)
     if not locked:
         print(f"Archiving files...")
         notice.config(text=f"Archiving files...")
