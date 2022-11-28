@@ -1,13 +1,3 @@
-# All code written and reserved by and for Deltaion Lee
-# To violate these rights is to break the law
-# Use is not prohibited, but claiming as own/redistributing is illegal
-# Altering the intellectual property is allowed, but do not claim as your own
-# Instead, put your name here:
-# I, <your_name>, have made changes to Deltaion Lee's code with or without his
-# explicit permission, and will face the consequences if the code is abused.
-
-# Thank you for your cooperation.
-
 import time
 
 class File():
